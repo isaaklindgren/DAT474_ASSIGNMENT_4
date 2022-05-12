@@ -1,0 +1,42 @@
+##delete all
+MATCH (n)
+DETACH DELETE n
+
+//TEACHINGASSISTANTS
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Teaching_Assistants.csv?token=GHSAT0AAAAAABQ74YDBTXZWEUX43MY72YIUYT3LXHA' AS row
+MERGE (ta:TeachingAssistants {teacherName:row.teacherName, teacherID:row.teacherID,departmentName:row.departmentName, divisionName:row.divisionName})
+RETURN ta;
+//SENIORTEACHERS
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Senior_Teachers.csv?token=GHSAT0AAAAAABQ74YDBK372GGCAI6X5COCYYT3LZOQ' AS row
+MERGE (st:SeniorTeachers {teacherName:row.teacherName, teacherID:row.teacherID,departmentName:row.departmentName, divisionName:row.divisionName})
+RETURN st;
+//PROGRAMMES
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Programmes.csv?token=GHSAT0AAAAAABQ74YDBDGGAZ4NDTGV6B5VQYT3LZMA' AS row
+MERGE (p:Programmes {programmeName:row.programmeName, programmeCode:row.programmeCode,departmentName:row.departmentName})
+RETURN p;
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Programmes.csv?token=GHSAT0AAAAAABQ74YDBDGGAZ4NDTGV6B5VQYT3LZMA' AS row
+MATCH(p:Programmes{programmeCode:row.programmeCode})
+MATCH(st:SeniorTeachers{teacherID:row.director})
+MERGE(p)-[r:HAS_DIRECTOR]->(st)
+return p,r,st;
+//COURSES
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Courses.csv?token=GHSAT0AAAAAABQ74YDBCV65FQWEQ63QO62KYT3LZMQ' AS row
+MERGE (c:Courses {courseName:row.courseName, courseCode:row.courseCode,credits:row.credits, level:row.level,department:row.department,division:row.division})
+RETURN c;
+LOAD CSV WITH HEADERS FROM 'https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Courses.csv?token=GHSAT0AAAAAABQ74YDBCV65FQWEQ63QO62KYT3LZMQ' AS row
+MATCH(c:Courses{courseCode:row.courseCode})
+MATCH(p:Programmes{programmeName:row.ownedBy})
+MERGE(p)<-[r:OWNED_BY]-(c)
+return p,r,c
+
+//PROGRAMMECOURSES
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Programme_Courses.csv?token=GHSAT0AAAAAABQ74YDB42XSDHVMHEFMVQXUYT3LPOA" as row
+MERGE(pc:ProgrammeCourses{studyYear:row.studyYear,academicYear:row.academicYear,courseType:row.courseType})
+RETURN pc;
+LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/mattiasHeinl/DAT475/original-data/Assignment%203/data/Programme_Courses.csv?token=GHSAT0AAAAAABQ74YDB42XSDHVMHEFMVQXUYT3LPOA" as row
+MATCH(p:Programmes{programmeCode:row.programmeCode})
+MATCH(c:Courses{courseCode:row.course})
+MERGE(pc)-[r:INCLUDED_IN]->(p)
+MERGE (pc)-[r1:HAS_A]->(c)
+return pc,r,r1,c;
+
